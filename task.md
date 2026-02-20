@@ -11,7 +11,13 @@
 - [x] 게임 엔진 로직 업데이트 (Update Game Engine) <!-- id: 8 -->
     - [x] 파이썬 프로토타입에 새로운 에이전트 구조 반영 <!-- id: 9 -->
 - [ ] 모던 웹 애플리케이션 구축 (React + Tailwind) <!-- id: 10 -->
-    - [ ] Flask API 서버 (server.py) 구축 <!-- id: 11 -->
-    - [ ] React 프로젝트 (Vite) 초기화 및 Tailwind 설정 <!-- id: 12 -->
-    - [ ] 시스템 가이드 에이전트 UI 컴포넌트 개발 <!-- id: 13 -->
-    - [ ] 게임 로직(API)과 프론트엔드 연동 <!-- id: 14 -->
+- [x] 모던 웹 애플리케이션 구축 (React + Tailwind) <!-- id: 10 -->
+    - [x] Flask API 서버 (server.py) 구축 <!-- id: 11 -->
+    - [x] React 프로젝트 (Vite) 초기화 및 Tailwind 설정 <!-- id: 12 -->
+    - [x] 시스템 가이드 에이전트 UI 컴포넌트 개발 <!-- id: 13 -->
+    - [x] 게임 로직(API)과 프론트엔드 연동 <!-- id: 14 -->
+
+- [x] 프로젝트 배포 및 관리 (Deployment & Management) <!-- id: 15 -->
+    - [x] README.md 작성 <!-- id: 16 -->
+    - [x] .gitignore 설정 및 GitHub 푸시 (https://github.com/DongHyun925/Digital_Prision) <!-- id: 17 -->
+    - [x] README.md 업데이트 (이미지, 타이틀, 아키텍처) <!-- id: 18 -->
