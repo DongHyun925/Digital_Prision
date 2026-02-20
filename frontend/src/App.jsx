@@ -1,0 +1,212 @@
+import { useState, useEffect, useRef } from 'react'
+import Terminal from './components/Terminal'
+import VisualPanel from './components/VisualPanel'
+import StatusPanel from './components/StatusPanel'
+import { soundEngine } from './utils/SoundEngine'
+
+function App() {
+  const [logs, setLogs] = useState([])
+  const [image, setImage] = useState(null)
+  const [status, setStatus] = useState("SYSTEM OFFLINE")
+  const [inventory, setInventory] = useState([])
+  const [location, setLocation] = useState("UNKNOWN")
+  const [loading, setLoading] = useState(false)
+  const [audioEnabled, setAudioEnabled] = useState(false)
+
+  const addLog = (newLogs, replace = false) => {
+    if (replace) {
+      setLogs(newLogs)
+    } else {
+      setLogs(prev => [...prev, ...newLogs])
+    }
+
+    // Process side effects from logs (images, status updates)
+    newLogs.forEach(log => {
+      if (log.type === 'image') {
+        setImage(log)
+      }
+      if (log.type === 'ui_update') {
+        setStatus(log.status)
+        setInventory(log.inventory)
+        if (log.location) setLocation(log.location)
+      }
+    })
+  }
+
+  const startGame = async () => {
+    setLoading(true)
+    try {
+      const res = await fetch('http://localhost:5000/api/init', { method: 'POST' })
+      const data = await res.json()
+      addLog(data.logs, true) // Pass true to replace existing logs
+    } catch (err) {
+      console.error("Failed to start game:", err)
+      addLog([{ agent: "SYSTEM", text: "ERROR: Failed to connect to server.", type: "error" }])
+    }
+    setLoading(false)
+  }
+
+  const sendCommand = async (text) => {
+    if (!text.trim()) return
+    setLoading(true)
+    try {
+      const res = await fetch('http://localhost:5000/api/action', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ command: text })
+      })
+      const data = await res.json()
+      addLog(data.logs)
+    } catch (err) {
+      console.error("Failed to send command:", err)
+      addLog([{ agent: "SYSTEM", text: "ERROR: Connection lost.", type: "error" }])
+    }
+    setLoading(false)
+  }
+
+  const getHint = async () => {
+    setLoading(true)
+    try {
+      const res = await fetch('http://localhost:5000/api/hint', { method: 'POST' })
+      const data = await res.json()
+      addLog(data.logs)
+    } catch (err) {
+      console.error("Failed to get hint:", err)
+      addLog([{ agent: "SYSTEM", text: "ERROR: Signal jammed.", type: "error" }])
+    }
+    setLoading(false)
+  }
+
+  useEffect(() => {
+    startGame()
+  }, [])
+
+  // Audio Logic: Trigger theme change on location change
+  useEffect(() => {
+    if (location && location.includes("구역")) {
+      const match = location.match(/구역 (\d+)/)
+      if (match) {
+        const sectorNum = parseInt(match[1])
+        soundEngine.playTheme(sectorNum)
+      }
+    }
+  }, [location])
+
+  const toggleAudio = async () => {
+    if (!audioEnabled) {
+      soundEngine.init()
+      await soundEngine.resume()
+
+      // Re-trigger current theme
+      if (location && location.includes("구역")) {
+        const match = location.match(/구역 (\d+)/)
+        if (match) {
+          const sectorNum = parseInt(match[1])
+          // Force theme update even if same
+          soundEngine.currentTheme = null
+          soundEngine.playTheme(sectorNum)
+        }
+      }
+    }
+    const muted = soundEngine.toggleMute()
+    setAudioEnabled(!muted)
+  }
+
+  const handleSave = async () => {
+    setLoading(true)
+    try {
+      const res = await fetch('http://localhost:5000/api/save', { method: 'POST' })
+      const data = await res.json()
+      if (data.state) {
+        localStorage.setItem('digital_prison_save', JSON.stringify(data.state))
+        addLog([{ agent: "SYSTEM", text: "✅ 데이터 동기화 완료. 로컬 저장소에 세션이 저장되었습니다.", type: "success" }])
+      }
+    } catch (err) {
+      console.error("Save failed:", err)
+      addLog([{ agent: "SYSTEM", text: "❌ 저장 실패: 서버 연결 확인 필요.", type: "error" }])
+    }
+    setLoading(false)
+  }
+
+  const handleLoad = async () => {
+    const savedState = localStorage.getItem('digital_prison_save')
+    if (!savedState) {
+      addLog([{ agent: "SYSTEM", text: "⚠️ 로드 실패: 저장된 파일이 없습니다.", type: "warning" }])
+      return
+    }
+
+    setLoading(true)
+    try {
+      const res = await fetch('http://localhost:5000/api/load', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ state: JSON.parse(savedState) })
+      })
+      const data = await res.json()
+      if (data.success) {
+        addLog(data.logs, true) // Replace logs on load
+      }
+    } catch (err) {
+      console.error("Load failed:", err)
+      addLog([{ agent: "SYSTEM", text: "❌ 로드 실패: 서버 연결 확인 필요.", type: "error" }])
+    }
+    setLoading(false)
+  }
+
+  return (
+    <div className="flex h-screen w-screen bg-cyber-bg text-cyber-primary font-mono overflow-hidden">
+      <div className="scanline"></div>
+
+      {/* Main Grid Layout */}
+      <div className="grid grid-cols-12 grid-rows-12 gap-4 p-4 w-full h-full z-10">
+
+        {/* Header (Top) */}
+        <header className="col-span-12 row-span-1 border-b-2 border-cyber-primary flex items-center justify-between px-4 bg-cyber-dark/80 backdrop-blur">
+          <h1 className="text-2xl font-bold tracking-widest text-shadow-neon">THE DIGITAL PRISON</h1>
+          <div className="flex gap-4 text-sm items-center">
+            <div className="flex gap-2 mr-4">
+              <button
+                onClick={handleSave}
+                className="px-2 py-1 border border-cyber-primary text-[10px] hover:bg-cyber-primary hover:text-black transition-all"
+              >
+                SAVE
+              </button>
+              <button
+                onClick={handleLoad}
+                className="px-2 py-1 border border-cyber-primary text-[10px] hover:bg-cyber-primary hover:text-black transition-all"
+              >
+                LOAD
+              </button>
+            </div>
+            <button
+              onClick={toggleAudio}
+              className={`px-3 py-1 border ${audioEnabled ? 'border-cyber-primary text-cyber-primary' : 'border-gray-600 text-gray-500'} font-mono text-xs hover:bg-cyber-primary/20 transition-all`}
+            >
+              [{audioEnabled ? 'AUDIO: ON' : 'AUDIO: OFF'}]
+            </button>
+            <span className="animate-pulse">NET: ONLINE</span>
+            <span>SEC: {location.includes("구역") ? location.split("구역")[1].split(":")[0].trim().padStart(2, '0') : "00"}</span>
+          </div>
+        </header>
+
+        {/* Visual Panel (Main Center-Left) */}
+        <div className="col-span-12 md:col-span-8 row-span-7 border border-cyber-dark bg-black relative">
+          <VisualPanel imageData={image} />
+        </div>
+
+        {/* Status Panel (Right Sidebar) */}
+        <div className="col-span-12 md:col-span-4 row-span-11 border border-cyber-primary bg-cyber-dark/50 p-4">
+          <StatusPanel status={status} inventory={inventory} location={location} onHint={getHint} />
+        </div>
+
+        {/* Terminal (Bottom Center-Left) */}
+        <div className="col-span-12 md:col-span-8 row-span-4 border-t border-cyber-primary bg-cyber-dark/90 text-sm">
+          <Terminal logs={logs} onSend={sendCommand} loading={loading} />
+        </div>
+
+      </div >
+    </div >
+  )
+}
+
+export default App

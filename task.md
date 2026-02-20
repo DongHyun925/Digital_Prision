@@ -1,0 +1,17 @@
+# 디지털 감옥 (The Digital Prison) - 프로젝트 태스크
+
+- [x] 에이전트 아키텍처 재설계 (Redesign Agent Architecture) <!-- id: 0 -->
+    - [x] 시나리오 마스터 (Scenario Agent) 정의 <!-- id: 1 -->
+    - [x] 퍼즐 아키텍트 (Puzzle Agent) 정의 <!-- id: 2 -->
+    - [x] 비주얼 일러스트레이터 (Vision & Image Agent) 정의 <!-- id: 3 -->
+    - [x] 시스템 가이드 (Artifacts Manager) 정의 <!-- id: 4 -->
+- [x] 게임 시나리오 및 UI 구현 (Update Scenario & UI) <!-- id: 5 -->
+    - [x] 시나리오 (Sector 0) 한글화 및 업데이트 <!-- id: 6 -->
+    - [x] 게임 UI 프로토타입 (HTML/CSS/JS) 생성 <!-- id: 7 -->
+- [x] 게임 엔진 로직 업데이트 (Update Game Engine) <!-- id: 8 -->
+    - [x] 파이썬 프로토타입에 새로운 에이전트 구조 반영 <!-- id: 9 -->
+- [ ] 모던 웹 애플리케이션 구축 (React + Tailwind) <!-- id: 10 -->
+    - [ ] Flask API 서버 (server.py) 구축 <!-- id: 11 -->
+    - [ ] React 프로젝트 (Vite) 초기화 및 Tailwind 설정 <!-- id: 12 -->
+    - [ ] 시스템 가이드 에이전트 UI 컴포넌트 개발 <!-- id: 13 -->
+    - [ ] 게임 로직(API)과 프론트엔드 연동 <!-- id: 14 -->
