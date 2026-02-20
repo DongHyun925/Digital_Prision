@@ -16,9 +16,9 @@ Gemini AI를 활용한 에이전트들이 게임의 진행을 돕거나 방해�
 
 ### 2. 다중 엔딩 시스템
 플레이어의 선택과 획득한 아이템에 따라 결말이 달라집니다.
-- **BAD ENDING (Destruction)**: 바이러스 페이로드를 사용하여 시스템을 파괴.
-- **GOOD ENDING (Restore)**: 백업 드라이브를 통한 시스템 복구.
-- **TRUE ENDING (Merge)**: 관리자 키를 이용한 시스템과의 동기화 및 초월.
+- **BAD ENDING (Destruction)**
+- **GOOD ENDING (Restore)**
+- **TRUE ENDING (Merge)**
 
 ### 3. 다양한 구역과 퍼즐 (Sectors 0-20)
 - 각 구역(Sector)마다 고유한 테마와 아이템, 퍼즐이 존재합니다.
