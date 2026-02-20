@@ -4,6 +4,9 @@ import VisualPanel from './components/VisualPanel'
 import StatusPanel from './components/StatusPanel'
 import { soundEngine } from './utils/SoundEngine'
 
+
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+
 function App() {
   const [logs, setLogs] = useState([])
   const [image, setImage] = useState(null)
@@ -36,7 +39,7 @@ function App() {
   const startGame = async () => {
     setLoading(true)
     try {
-      const res = await fetch('http://localhost:5000/api/init', { method: 'POST' })
+      const res = await fetch(`${API_URL}/api/init`, { method: 'POST' })
       const data = await res.json()
       addLog(data.logs, true) // Pass true to replace existing logs
     } catch (err) {
@@ -50,7 +53,7 @@ function App() {
     if (!text.trim()) return
     setLoading(true)
     try {
-      const res = await fetch('http://localhost:5000/api/action', {
+      const res = await fetch(`${API_URL}/api/action`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ command: text })
@@ -67,7 +70,7 @@ function App() {
   const getHint = async () => {
     setLoading(true)
     try {
-      const res = await fetch('http://localhost:5000/api/hint', { method: 'POST' })
+      const res = await fetch(`${API_URL}/api/hint`, { method: 'POST' })
       const data = await res.json()
       addLog(data.logs)
     } catch (err) {
@@ -115,7 +118,7 @@ function App() {
   const handleSave = async () => {
     setLoading(true)
     try {
-      const res = await fetch('http://localhost:5000/api/save', { method: 'POST' })
+      const res = await fetch(`${API_URL}/api/save`, { method: 'POST' })
       const data = await res.json()
       if (data.state) {
         localStorage.setItem('digital_prison_save', JSON.stringify(data.state))
@@ -137,7 +140,7 @@ function App() {
 
     setLoading(true)
     try {
-      const res = await fetch('http://localhost:5000/api/load', {
+      const res = await fetch(`${API_URL}/api/load`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ state: JSON.parse(savedState) })

@@ -62,9 +62,33 @@ graph TD
 | **AI** | **Google Gemini 2.0 Flash** | 고성능 멀티모달 AI 모델 |
 | **Frontend** | React, Vite, Axios | 모던 웹 UI 및 비동기 통신 |
 | **Styling** | Tailwind CSS | 사이버펑크 테마 및 반응형 디자인 |
-| **Deployment** | Vercel (Frontend), Railway (Backend) | *예정* |
+| **Deployment** | Vercel (Frontend), Render (Backend) | Free Hosting |
 
 ---
+
+## ☁️ 배포 (Deployment)
+
+이 프로젝트는 누구나 쉽게 배포할 수 있도록 설정되어 있습니다.
+
+### 1. Backend (Render)
+1. [Render](https://render.com) 회원가입 및 로그인.
+2. `New +` 버튼 -> `Web Service` 선택.
+3. 이 GitHub 저장소를 연결.
+4. 설정값:
+   - **Environment**: Python 3
+   - **Build Command**: `pip install -r requirements.txt`
+   - **Start Command**: `gunicorn server:app`
+   - **Environment Variables**:
+     - `GOOGLE_API_KEY`: (본인의 Gemini API Key 입력)
+
+### 2. Frontend (Vercel)
+1. [Vercel](https://vercel.com) 회원가입 및 로그인.
+2. `Add New...` -> `Project` 선택.
+3. 이 GitHub 저장소를 연결.
+4. `frontend` 폴더를 Root Directory로 설정.
+5. **Environment Variables**:
+   - `VITE_API_URL`: (위에서 배포한 Render 서버 주소, 예: `https://your-backend.onrender.com`)
+6. `Deploy` 클릭!
 
 ## 📦 설치 및 실행 방법
 
