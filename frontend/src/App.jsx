@@ -90,36 +90,64 @@ function App() {
   const sendCommand = async (text) => {
     if (!text.trim()) return
     setLoading(true)
+    console.log("COMMAND SEND: Executing:", text)
     try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 30000); // 30s timeout
+
       const res = await fetch(`${API_URL}/api/action`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'X-Gemini-API-Key': apiKey
         },
-        body: JSON.stringify({ command: text })
+        body: JSON.stringify({ command: text }),
+        signal: controller.signal
       })
+      clearTimeout(timeoutId);
+
+      console.log("COMMAND SEND: Status:", res.status)
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(`Server Error (${res.status}): ${errData.error_detail || 'Unknown'}`);
+      }
+
       const data = await res.json()
+      console.log("COMMAND SEND: Success:", data)
       addLog(data.logs)
     } catch (err) {
-      console.error("Failed to send command:", err)
-      addLog([{ agent: "SYSTEM", text: "ERROR: Connection lost.", type: "error" }])
+      console.error("COMMAND SEND FAILURE:", err)
+      const errorMsg = err.name === 'AbortError' ? "서버 응답 시간이 초과되었습니다 (30초)." : err.message;
+      addLog([{ agent: "SYSTEM", text: `❌ 연결 오류: ${errorMsg}`, type: "error" }])
     }
     setLoading(false)
   }
 
   const getHint = async () => {
     setLoading(true)
+    console.log("HINT REQUEST: Starting...")
     try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 30000); // 30s timeout
+
       const res = await fetch(`${API_URL}/api/hint`, {
         method: 'POST',
-        headers: { 'X-Gemini-API-Key': apiKey }
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Gemini-API-Key': apiKey
+        },
+        signal: controller.signal
       })
+      clearTimeout(timeoutId);
+
+      console.log("HINT REQUEST: Status:", res.status)
+      if (!res.ok) throw new Error(`HTTP Error ${res.status}`)
+
       const data = await res.json()
       addLog(data.logs)
     } catch (err) {
-      console.error("Failed to get hint:", err)
-      addLog([{ agent: "SYSTEM", text: "ERROR: Signal jammed.", type: "error" }])
+      console.error("HINT REQUEST FAILURE:", err)
+      addLog([{ agent: "SYSTEM", text: `⚠️ 신호 방해: ${err.message}`, type: "error" }])
     }
     setLoading(false)
   }

@@ -4,7 +4,8 @@ import traceback
 from ai_engine import session_manager
 
 app = Flask(__name__)
-CORS(app)  # Enable CORS for React frontend
+# 폰트엔드(Vercel)에서의 요청을 허용하기 위해 CORS 명시적 설정
+CORS(app, resources={r"/api/*": {"origins": "*"}}, allow_headers=["Content-Type", "X-Gemini-API-Key"])
 
 @app.route('/api/init', methods=['POST'])
 def init_game():
