@@ -137,7 +137,7 @@ function App() {
       let errorMsg = err.message;
       if (err.name === 'AbortError') errorMsg = "서버 응답 속도가 너무 느립니다 (60초 초과).";
       if (err.message === "Failed to fetch") {
-        errorMsg = `서버 연결 실패 (Failed to fetch). 브라우저가 [${API_URL}] 요청을 차단했거나 서버가 응답하지 않습니다. (상세: ${err.toString()})`;
+        errorMsg = `서버 연결 실패 (Failed to fetch).\n- 대상 URL: ${`${API_URL}/api/action`}\n- 원인: 브라우저가 요청을 차단했거나 서버가 응답하지 않습니다.\n- 조치: 1분 뒤 재시도하거나, 개발자 도구(F12)의 Console 탭을 확인해 주세요.`;
       } else {
         try {
           if (err.message.includes("| Body: ")) {

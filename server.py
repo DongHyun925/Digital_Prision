@@ -1,40 +1,25 @@
 import os
 import traceback
 from flask import Flask, request, jsonify, make_response
+from flask_cors import CORS
 from ai_engine import session_manager
 
 app = Flask(__name__)
 
-# --- Simplified & Clean CORS Handling ---
-@app.after_request
-def add_cors_headers(response):
-    # .set() ensures the header is unique and not duplicated
-    response.headers.set("Access-Control-Allow-Origin", "*")
-    response.headers.set("Access-Control-Allow-Headers", "Content-Type,X-Gemini-API-Key,Authorization")
-    response.headers.set("Access-Control-Allow-Methods", "GET,PUT,POST,DELETE,OPTIONS")
-    return response
-
-@app.before_request
-def handle_options():
-    # Return 200 for all OPTIONS requests immediately
-    # after_request will still run and add the unique CORS headers
-    if request.method == "OPTIONS":
-        return make_response("", 200)
-
-def create_error_response(e, status_code=500):
-    error_trace = traceback.format_exc()
-    print(f"!!! SERVER ERROR [{status_code}] !!!\n{error_trace}")
-    response = jsonify({
-        "error": "Internal Server Error",
-        "message": str(e),
-        "traceback": error_trace
-    })
-    response.status_code = status_code
-    return response
+# --- Standard Flask-CORS Configuration ---
+# This is the most robust way to handle CORS in Flask.
+# It automatically handles OPTIONS requests and injects correct headers.
+CORS(app, resources={r"/api/*": {"origins": "*"}}, supports_credentials=False)
 
 @app.errorhandler(Exception)
 def handle_exception(e):
-    return create_error_response(e, 500)
+    error_trace = traceback.format_exc()
+    print(f"!!! SERVER ERROR !!!\n{error_trace}")
+    return jsonify({
+        "error": "Internal Server Error",
+        "message": str(e),
+        "traceback": error_trace
+    }), 500
 
 @app.route('/')
 def health_check():
