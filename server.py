@@ -4,12 +4,24 @@ import traceback
 from ai_engine import session_manager
 
 app = Flask(__name__)
-# CORS 설정 최적화: wildcard(*)를 사용할 때는 credentials를 허용하지 않아야 브라우저 오류가 없습니다.
-CORS(app, resources={r"/*": {"origins": "*"}}, allow_headers="*", methods=["GET", "POST", "OPTIONS"])
+# 모든 도메인에서의 요청을 허용 (가장 완화된 설정)
+CORS(app, resources={r"/*": {"origins": "*"}})
+
+@app.after_request
+def after_request(response):
+    # 브라우저의 CORS 정책을 수동으로 통과시키기 위한 헤더 주입
+    response.headers.add('Access-Control-Allow-Origin', '*')
+    response.headers.add('Access-Control-Allow-Headers', 'Content-Type,X-Gemini-API-Key,Authorization')
+    response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
+    return response
 
 @app.route('/')
 def health_check():
     return "🕸️ 404: THE DIGITAL PRISON - BACKEND SYSTEM ONLINE 🕸️"
+
+@app.route('/api/ping')
+def ping():
+    return jsonify({"status": "pong", "message": "Connection established"})
 
 @app.route('/api/init', methods=['POST'])
 def init_game():

@@ -5,7 +5,14 @@ import StatusPanel from './components/StatusPanel'
 import { soundEngine } from './utils/SoundEngine'
 
 
-const API_URL = (import.meta.env.VITE_API_URL || 'http://localhost:5000').replace(/\/$/, '');
+const getBaseUrl = () => {
+  let url = (import.meta.env.VITE_API_URL || 'http://localhost:5000').trim().replace(/\/$/, '');
+  if (!url.startsWith('http')) {
+    url = `https://${url}`;
+  }
+  return url;
+};
+const API_URL = getBaseUrl();
 
 function App() {
   const [logs, setLogs] = useState([])
@@ -51,6 +58,10 @@ function App() {
     setLoading(true)
     console.log("GAME INIT: Attempting connection to:", API_URL)
     try {
+      // Basic ping test first to diagnose TypeError: Failed to fetch
+      console.log("PING: Testing connection to /api/ping...");
+      await fetch(`${API_URL}/api/ping`).then(r => console.log("PING SUCCESS:", r.status)).catch(e => console.error("PING FAILED:", e));
+
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 60000); // Increased to 60s for Render cold start
 
@@ -74,13 +85,15 @@ function App() {
       }
     } catch (err) {
       console.error("GAME INIT FAILURE:", err)
-      const errorMsg = err.name === 'AbortError'
-        ? "서버 응답 속도가 너무 느립니다. Render 서버가 깨어나는 중일 수 있습니다 (약 60초 소요)."
-        : `연결 실패: ${err.message}`;
+      let errorMsg = err.message;
+      if (err.name === 'AbortError') errorMsg = "서버 응답 속도가 너무 느립니다 (약 60초 소요).";
+      if (err.message === "Failed to fetch") {
+        errorMsg = `서버 연결 실패. [${API_URL}] 주소에 접속할 수 없습니다. (상세: ${err.toString()})`;
+      }
 
       addLog([{
         agent: "SYSTEM",
-        text: `FATAL: ${errorMsg}. [DEBUG: ${API_URL}]`,
+        text: `FATAL: ${errorMsg}`,
         type: "error"
       }])
     }
@@ -90,10 +103,11 @@ function App() {
   // Sector 0 Local Logic for "Immediate" feel
   const LOCAL_LOGIC = {
     "0": { // Sector 0
-      "침대": "매트리스 밑을 뒤져 [휘어진 철사]를 찾았습니다. (시스템 로컬 인식)",
-      "바닥": "먼지 구덩이 속에 [더러운 렌즈]가 떨어져 있습니다. (시스템 로컬 인식)",
-      "터미널": "전원이 들어오지 않습니다. 내부 회로가 끊어져 있습니다. (시스템 로컬 인식)",
-      "유니폼": "입고 있는 죄수복입니다. 낡았지만 튼튼합니다. (시스템 로컬 인식)"
+      "침대": "매트리스 밑을 뒤져 [휘어진 철사]를 찾았습니다. (로컬 데이터 확인)",
+      "바닥": "먼지 구덩이 속에 [더러운 렌즈]가 떨어져 있습니다. (로컬 데이터 확인)",
+      "터미널": "전원이 들어오지 않습니다. 내부 회로가 끊어져 있습니다. (로컬 데이터 확인)",
+      "유니폼": "입고 있는 죄수복입니다. 낡았지만 튼튼합니다. (로컬 데이터 확인)",
+      "조사": "주변을 살펴봅니다. 차가운 금속 벽과 몇 가지 사물이 보입니다. (로컬 응답 활성)"
     }
   }
 
