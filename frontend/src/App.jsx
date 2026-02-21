@@ -87,13 +87,34 @@ function App() {
     setLoading(false)
   }
 
+  // Sector 0 Local Logic for "Immediate" feel
+  const LOCAL_LOGIC = {
+    "0": { // Sector 0
+      "침대": "매트리스 밑을 뒤져 [휘어진 철사]를 찾았습니다. (시스템 로컬 인식)",
+      "바닥": "먼지 구덩이 속에 [더러운 렌즈]가 떨어져 있습니다. (시스템 로컬 인식)",
+      "터미널": "전원이 들어오지 않습니다. 내부 회로가 끊어져 있습니다. (시스템 로컬 인식)",
+      "유니폼": "입고 있는 죄수복입니다. 낡았지만 튼튼합니다. (시스템 로컬 인식)"
+    }
+  }
+
   const sendCommand = async (text) => {
     if (!text.trim()) return
+    setLogs(prev => [...prev, { agent: "USER", text, type: "user_input" }])
+
+    // Immediate Local Feedback (Optimistic UI)
+    const sector0 = LOCAL_LOGIC["0"];
+    for (const key in sector0) {
+      if (text.includes(key)) {
+        addLog([{ agent: "SYSTEM", text: `[LOCAL_ACK]: ${sector0[key]}`, type: "success" }])
+        break;
+      }
+    }
+
     setLoading(true)
     console.log("COMMAND SEND: Executing:", text)
     try {
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 60000); // Increased to 60s
+      const timeoutId = setTimeout(() => controller.abort(), 60000);
 
       const res = await fetch(`${API_URL}/api/action`, {
         method: 'POST',
@@ -117,7 +138,11 @@ function App() {
       addLog(data.logs)
     } catch (err) {
       console.error("COMMAND SEND FAILURE:", err)
-      const errorMsg = err.name === 'AbortError' ? "서버 응답 시간이 초과되었습니다 (60초). 다시 시도해 주세요." : err.message;
+      let errorMsg = err.message;
+      if (err.name === 'AbortError') errorMsg = "서버 응답 속도가 너무 느립니다 (60초 초과).";
+      if (err.message === "Failed to fetch") {
+        errorMsg = `서버 연결 실패. URL 확인 필요: ${API_URL}. (힌트: 'prision' -> 'prison' 오타 가능성)`;
+      }
       addLog([{ agent: "SYSTEM", text: `❌ 연결 오류: ${errorMsg}`, type: "error" }])
     }
     setLoading(false)
